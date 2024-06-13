@@ -1,20 +1,26 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
-import av
-import logging
+import cv2
 
-class VideoTransformer(VideoTransformerBase):
-    def __init__(self):
-        self.logger = logging.getLogger("VideoTransformer")
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        self.logger.addHandler(handler)
+def main():
+    st.title("Webcam Access Test")
+    
+    # Start webcam capture
+    cap = cv2.VideoCapture(0)
 
-    def transform(self, frame):
-        img = frame.to_ndarray(format="bgr24")
-        self.logger.debug("Frame received: shape=%s", img.shape)
-        return av.VideoFrame.from_ndarray(img, format="bgr24")
+    if not cap.isOpened():
+        st.error("Failed to open webcam.")
+        return
 
-st.title("Webcam Access Test")
-webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+    while True:
+        success, img = cap.read()
+        if not success:
+            st.error("Failed to capture image from webcam.")
+            break
+
+        # Display the webcam feed
+        st.image(img, channels="BGR")
+
+    cap.release()
+
+if __name__ == "__main__":
+    main()
