@@ -5,6 +5,7 @@ import av
 class VideoTransformer(VideoTransformerBase):
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
+        # Just return the frame without any transformation for testing
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 st.title("Webcam Access Test")
