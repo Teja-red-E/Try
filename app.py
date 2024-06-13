@@ -2,17 +2,23 @@ import streamlit as st
 import cv2
 import os
 from cvzone.PoseModule import PoseDetector
-import cvzone
 
 def main():
     st.title("Virtual Dress Try-On")
 
     # Load button images
-    button_r = cv2.imread("C:/Users/chara/Downloads/Resources-1/Resources/button.png", cv2.IMREAD_UNCHANGED)
+    button_r_path = "button.png"
+    button_l_path = "button.png"
+    shirt_path = "Shirts"
+
+    if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
+        st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
+        return
+
+    button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
     button_l = cv2.flip(button_r, 1)
 
-    s_path = "C:/Users/chara/Downloads/Resources-1/Resources/Shirts"
-    listShirts = os.listdir(s_path)
+    listShirts = os.listdir(shirt_path)
     ratio = 262 / 190  # width of shirt/width of points
     shirt_ratio = 581 / 440
     img_num = 0
@@ -46,7 +52,7 @@ def main():
 
         img = detector.findPose(img, draw=False)
         lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False, draw=False)
-        
+
         if lmList:
             lm16 = lmList[16]  # Index finger landmark
             lm19 = lmList[19]  # Thumb landmark
@@ -77,7 +83,7 @@ def main():
             lm11 = lmList[11][0:2]
             lm12 = lmList[12][0:2]
 
-            imgShirt = cv2.imread(os.path.join(s_path, listShirts[img_num]), cv2.IMREAD_UNCHANGED)
+            imgShirt = cv2.imread(os.path.join(shirt_path, listShirts[img_num]), cv2.IMREAD_UNCHANGED)
             shirt_width = int((lm11[0] - lm12[0]) * ratio)
             imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * shirt_ratio)))
             scale = (lm11[0] - lm12[0]) / 190
