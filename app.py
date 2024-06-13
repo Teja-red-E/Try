@@ -2,6 +2,8 @@ import streamlit as st
 import cv2
 import os
 from cvzone.PoseModule import PoseDetector
+import cvzone
+import numpy as np
 
 def main():
     st.title("Virtual Dress Try-On")
@@ -11,6 +13,7 @@ def main():
     button_l_path = "button.png"
     shirt_path = "Shirts"
 
+    # Load button images
     if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
         st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
         return
@@ -33,7 +36,7 @@ def main():
     # Start webcam
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        st.error("Failed to open webcam.")
+        st.error("Failed to open webcam. Please make sure it is accessible.")
         return
 
     frame_width = 1280
