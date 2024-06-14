@@ -89,7 +89,7 @@ class VideoProcessor:
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
 
-            img = cvzone.overlayPNG(img, button_r, (700, 150))
+            img = cvzone.overlayPNG(img, button_r, (200, 150))
             img = cvzone.overlayPNG(img, button_l, (60, 150))
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
