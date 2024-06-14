@@ -4,3 +4,4 @@ opencv-python-headless
 opencv-contrib-python-headless
 cvzone
 av
+mediapipe
