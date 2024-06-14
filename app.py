@@ -16,20 +16,19 @@ if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
     st.stop()
 
 # Load button images
-button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
-button_l = cv2.flip(button_r, 1)
+try:
+    button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
+    button_l = cv2.flip(button_r, 1)
+except Exception as e:
+    st.error(f"Error loading button images: {e}")
+    st.stop()
 
-listShirts = os.listdir(shirt_path)
-ratio = 262 / 190  # width of shirt/width of points
-shirt_ratio = 581 / 440
-img_num = 0
-counter_r = 0
-counter_l = 0
-speed = 7
-
-# Define regions for left and right buttons
-left_button_region = (0, 100, 200, 500)  # Define the region for the left button (x, y, width, height)
-right_button_region = (1080, 100, 200, 500)  # Define the region for the right button (x, y, width, height)
+# Load shirt images
+try:
+    listShirts = os.listdir(shirt_path)
+except Exception as e:
+    st.error(f"Error loading shirt images from directory: {e}")
+    st.stop()
 
 # Initialize pose detector
 detector = PoseDetector()
@@ -90,16 +89,19 @@ class VideoProcessor:
                 st.write(f"Error overlaying image: {e}")
 
             # Adjust button overlay positions for 875x660 frame
-            original_left_x = 72
-            original_right_x = 1074
-            original_y = 293
+            try:
+                original_left_x = 72
+                original_right_x = 1074
+                original_y = 293
 
-            adjusted_left_x = int(original_left_x * (875 / 1280))
-            adjusted_right_x = int(original_right_x * (875 / 1280))
-            adjusted_y = int(original_y * (660 / 720))
+                adjusted_left_x = int(original_left_x * (875 / 1280))
+                adjusted_right_x = int(original_right_x * (875 / 1280))
+                adjusted_y = int(original_y * (660 / 720))
 
-            img = cvzone.overlayPNG(img, button_r, (adjusted_right_x, adjusted_y))
-            img = cvzone.overlayPNG(img, button_l, (adjusted_left_x, adjusted_y))
+                img = cvzone.overlayPNG(img, button_r, (adjusted_right_x, adjusted_y))
+                img = cvzone.overlayPNG(img, button_l, (adjusted_left_x, adjusted_y))
+            except Exception as e:
+                st.write(f"Error overlaying buttons: {e}")
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
