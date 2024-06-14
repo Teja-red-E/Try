@@ -27,13 +27,12 @@ counter_r = 0
 counter_l = 0
 speed = 7
 
-# Webcam dimensions for button positioning
-webcam_width = 875
-webcam_height = 660
+# Define regions for left and right buttons
+new_width = 880
+new_height = 495
 
-# Define regions for left and right buttons based on webcam dimensions
-left_button_region = (int(0.05 * webcam_width), int(0.2 * webcam_height), int(0.15 * webcam_width), int(0.6 * webcam_height))
-right_button_region = (int(0.85 * webcam_width), int(0.2 * webcam_height), int(0.15 * webcam_width), int(0.6 * webcam_height))
+left_button_region = (0, new_height // 2 - 50, 150, new_height // 2)  # Define the region for the left button (x, y, width, height)
+right_button_region = (new_width - 150, new_height // 2 - 50, 150, new_height // 2)  # Define the region for the right button (x, y, width, height)
 
 # Initialize pose detector
 detector = PoseDetector()
@@ -60,8 +59,7 @@ class VideoProcessor:
             if left_button_region[0] < lm16[0] < left_button_region[0] + left_button_region[2] and \
                     left_button_region[1] < lm16[1] < left_button_region[1] + left_button_region[3]:
                 self.counter_r += 1
-                cv2.ellipse(img, (left_button_region[0] + left_button_region[2] // 2, left_button_region[1] + left_button_region[3] // 2), 
-                            (left_button_region[2] // 2, left_button_region[3] // 2), 0, 0, self.counter_r * speed, (0, 255, 0), 20)
+                cv2.ellipse(img, (139, 360), (66, 66), 0, 0, self.counter_r * speed, (0, 255, 0), 20)
                 if self.counter_r * speed > 360:
                     self.counter_r = 0
                     if self.img_num < len(self.listShirts) - 1:
@@ -71,8 +69,7 @@ class VideoProcessor:
             elif right_button_region[0] < lm19[0] < right_button_region[0] + right_button_region[2] and \
                     right_button_region[1] < lm19[1] < right_button_region[1] + right_button_region[3]:
                 self.counter_l += 1
-                cv2.ellipse(img, (right_button_region[0] + right_button_region[2] // 2, right_button_region[1] + right_button_region[3] // 2), 
-                            (right_button_region[2] // 2, right_button_region[3] // 2), 0, 0, self.counter_l * speed, (0, 255, 0), 20)
+                cv2.ellipse(img, (1138, 360), (66, 66), 0, 0, self.counter_l * speed, (0, 255, 0), 20)
                 if self.counter_l * speed > 360:
                     self.counter_l = 0
                     if self.img_num > 0:
@@ -95,11 +92,10 @@ class VideoProcessor:
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
 
-            # Overlay buttons on the image
-            img = cvzone.overlayPNG(img, button_r, (right_button_region[0], right_button_region[1]))
-            img = cvzone.overlayPNG(img, button_l, (left_button_region[0], left_button_region[1]))
+            img = cvzone.overlayPNG(img, button_r, (new_width - 150, new_height // 2 - 50))
+            img = cvzone.overlayPNG(img, button_l, (0, new_height // 2 - 50))
 
-        return av.VideoFrame.from_ndarray(img, format='bgr24')
+        return av.VideoFrame.from_ndarray(img, format='bgr24', frame_size=(new_width, new_height))
 
 # Set up Streamlit app
 st.title("Virtual Dress Try-On with Webcam")
