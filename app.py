@@ -5,7 +5,6 @@ import cv2
 import os
 from cvzone.PoseModule import PoseDetector
 import cvzone
-import json
 
 # Ensure resource files are in the correct path
 button_r_path = "button.png"
@@ -134,9 +133,9 @@ for row in range(num_rows):
         if shirt_index < len(listShirts):
             shirt = listShirts[shirt_index]
             col.image(os.path.join(shirt_path, shirt), caption=f"Shirt {shirt_index + 1}", width=200)
-            if col.button("Try On", key=f"try_on_{shirt}", on_click=lambda s=shirt: try_on_shirt(s)):
-                st.session_state['selected_shirt'] = shirt
+            if col.button("Try On", key=f"try_on_{shirt_index}", on_click=lambda s=shirt: try_on_shirt(shirt_index)):
+                st.session_state['selected_shirt'] = shirt_index
 
-def try_on_shirt(shirt):
-    st.experimental_set_query_params(shirt=shirt)
+def try_on_shirt(shirt_index):
+    st.experimental_set_query_params(shirt=shirt_index)
     st.experimental_rerun()
