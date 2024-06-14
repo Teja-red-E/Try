@@ -118,8 +118,11 @@ for shirt in listShirts:
         st.session_state['selected_shirt'] = shirt
 
 def try_on_shirt(shirt):
-    st.experimental_set_query_params(shirt=shirt)
+    st.session_state['selected_shirt'] = shirt
     st.experimental_rerun()
+
+    # Open a new tab with the specified URL
+    st.write('<a href="https://www.example.com" target="_blank">Click here</a>', unsafe_allow_html=True)
 
 # Configure WebRTC
 if 'selected_shirt' in st.session_state:
