@@ -16,10 +16,4 @@ async function fetchShirts() {
         shirtImg.src = shirt.imageUrl;
         shirtImg.alt = shirt.name;
 
-        shirtItem.appendChild(shirtImg);
-        shirtContainer.appendChild(shirtItem);
-    });
-}
-
-// Call fetchShirts() when the page loads
-window.onload = fetchShirts;
+        const tryOnButton
