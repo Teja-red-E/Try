@@ -89,8 +89,17 @@ class VideoProcessor:
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
 
-            img = cvzone.overlayPNG(img, button_r, (200, 150))
-            img = cvzone.overlayPNG(img, button_l, (60, 150))
+            # Adjust button overlay positions for 875x660 frame
+            original_left_x = 72
+            original_right_x = 1074
+            original_y = 293
+
+            adjusted_left_x = int(original_left_x * (875 / 1280))
+            adjusted_right_x = int(original_right_x * (875 / 1280))
+            adjusted_y = int(original_y * (660 / 720))
+
+            img = cvzone.overlayPNG(img, button_r, (adjusted_right_x, adjusted_y))
+            img = cvzone.overlayPNG(img, button_l, (adjusted_left_x, adjusted_y))
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
