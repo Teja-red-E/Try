@@ -1,60 +1,59 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, RTCConfiguration
-import av
 import cv2
 import os
-import time
 from cvzone.PoseModule import PoseDetector
 import cvzone
+import numpy as np
 
-# Ensure resource files are in the correct path
-button_r_path = "button.png"
-button_l_path = "button.png"
-shirt_path = "Shirts"
+def main():
+    st.title("Virtual Dress Try-On")
 
-if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
-    st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
-    st.stop()
+    # Load button images
+    button_r_path = "button.png"
+    button_l_path = "button.png"
+    shirt_path = "Shirts"
 
-# Load button images
-button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
-button_l = cv2.flip(button_r, 1)
+    # Load button images
+    if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
+        st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
+        return
 
-listShirts = os.listdir(shirt_path)
-ratio = 262 / 190  # width of shirt/width of points
-shirt_ratio = 581 / 440
-speed = 7
+    button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
+    button_l = cv2.flip(button_r, 1)
 
-# Define regions for left and right buttons
-left_button_region = (0, 100, 200, 500)  # Define the region for the left button (x, y, width, height)
-right_button_region = (1080, 100, 200, 500)  # Define the region for the right button (x, y, width, height)
+    listShirts = os.listdir(shirt_path)
+    ratio = 262 / 190  # width of shirt/width of points
+    shirt_ratio = 581 / 440
+    img_num = 0
+    counter_r = 0
+    counter_l = 0
+    speed = 7
 
-# Initialize pose detector
-detector = PoseDetector()
+    # Define regions for left and right buttons
+    left_button_region = (0, 100, 200, 500)  # Define the region for the left button (x, y, width, height)
+    right_button_region = (1080, 100, 200, 500)  # Define the region for the right button (x, y, width, height)
 
-# Define the VideoProcessor class
-class VideoProcessor:
-    def __init__(self):
-        self.counter_r = 0
-        self.counter_l = 0
-        self.img_num = 0
-        self.listShirts = listShirts
-        self.last_frame_time = time.time()
+    # Start webcam
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        st.error("Failed to open webcam. Please make sure it is accessible.")
+        return
 
-    def recv(self, frame):
-        current_time = time.time()
-        frame_interval = 1 / 10  # Target 10 FPS to reduce load
+    frame_width = 1280
+    frame_height = 720
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
+    detector = PoseDetector()
 
-        if current_time - self.last_frame_time < frame_interval:
-            return frame  # Skip processing to maintain target frame rate
+    stframe = st.empty()
 
-        self.last_frame_time = current_time
-        frm = frame.to_ndarray(format="bgr24")
+    while True:
+        success, img = cap.read()
+        if not success:
+            st.write("Failed to capture image from webcam.")
+            break
 
-        # Log frame processing start
-        print("Processing frame...")
-
-        img = detector.findPose(frm, draw=False)
+        img = detector.findPose(img, draw=False)
         lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False, draw=False)
 
         if lmList:
@@ -64,30 +63,30 @@ class VideoProcessor:
             # Check if the index finger is within the left button region
             if left_button_region[0] < lm16[0] < left_button_region[0] + left_button_region[2] and \
                     left_button_region[1] < lm16[1] < left_button_region[1] + left_button_region[3]:
-                self.counter_r += 1
-                cv2.ellipse(img, (139, 360), (66, 66), 0, 0, self.counter_r * speed, (0, 255, 0), 20)
-                if self.counter_r * speed > 360:
-                    self.counter_r = 0
-                    if self.img_num < len(self.listShirts) - 1:
-                        self.img_num += 1
+                counter_r += 1
+                cv2.ellipse(img, (139, 360), (66, 66), 0, 0, counter_r * speed, (0, 255, 0), 20)
+                if counter_r * speed > 360:
+                    counter_r = 0
+                    if img_num < len(listShirts) - 1:
+                        img_num += 1
 
             # Check if the thumb is within the right button region
             elif right_button_region[0] < lm19[0] < right_button_region[0] + right_button_region[2] and \
                     right_button_region[1] < lm19[1] < right_button_region[1] + right_button_region[3]:
-                self.counter_l += 1
-                cv2.ellipse(img, (1138, 360), (66, 66), 0, 0, self.counter_l * speed, (0, 255, 0), 20)
-                if self.counter_l * speed > 360:
-                    self.counter_l = 0
-                    if self.img_num > 0:
-                        self.img_num -= 1
+                counter_l += 1
+                cv2.ellipse(img, (1138, 360), (66, 66), 0, 0, counter_l * speed, (0, 255, 0), 20)
+                if counter_l * speed > 360:
+                    counter_l = 0
+                    if img_num > 0:
+                        img_num -= 1
             else:
-                self.counter_r = 0
-                self.counter_l = 0
+                counter_r = 0
+                counter_l = 0
 
             lm11 = lmList[11][0:2]
             lm12 = lmList[12][0:2]
 
-            imgShirt = cv2.imread(os.path.join(shirt_path, self.listShirts[self.img_num]), cv2.IMREAD_UNCHANGED)
+            imgShirt = cv2.imread(os.path.join(shirt_path, listShirts[img_num]), cv2.IMREAD_UNCHANGED)
             shirt_width = int((lm11[0] - lm12[0]) * ratio)
             imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * shirt_ratio)))
             scale = (lm11[0] - lm12[0]) / 190
@@ -101,20 +100,10 @@ class VideoProcessor:
             img = cvzone.overlayPNG(img, button_r, (1074, 293))
             img = cvzone.overlayPNG(img, button_l, (72, 293))
 
-        return av.VideoFrame.from_ndarray(img, format='bgr24')
+        # Convert image for Streamlit display
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        stframe.image(img_rgb, channels="RGB", use_column_width=True)
 
-# Set up Streamlit app
-st.title("Virtual Dress Try-On with Webcam")
+if __name__ == "__main__":
+    main()
 
-# Configure WebRTC
-webrtc_streamer(
-    key="key",
-    video_processor_factory=VideoProcessor,
-    rtc_configuration=RTCConfiguration(
-        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-    ),
-)
-
-st.write("Debugging Information:")
-st.write(f"Resource Files: {os.listdir()}")
-st.write(f"Shirt Files: {listShirts}")
