@@ -127,14 +127,16 @@ st.markdown("# Shirt Gallery")
 num_cols = 3
 num_rows = (len(listShirts) + num_cols - 1) // num_cols
 
+# Distribute shirts evenly across columns
 for row in range(num_rows):
-    col1, col2, col3 = st.columns(3)
-    for col, shirt_index in zip((col1, col2, col3), range(row * num_cols, (row + 1) * num_cols)):
+    cols = st.columns(num_cols)
+    for col, shirt_index in zip(cols, range(row * num_cols, (row + 1) * num_cols)):
         if shirt_index < len(listShirts):
             shirt = listShirts[shirt_index]
             col.image(os.path.join(shirt_path, shirt), caption=f"Shirt {shirt_index + 1}", width=200)
-            if col.button("Try On", key=f"try_on_{shirt_index}", on_click=lambda s=shirt: try_on_shirt(shirt_index)):
+            if col.button("Try On", key=f"try_on_{shirt_index}"):
                 st.session_state['selected_shirt'] = shirt_index
+                st.experimental_rerun()
 
 def try_on_shirt(shirt_index):
     st.experimental_set_query_params(shirt=shirt_index)
