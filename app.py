@@ -121,12 +121,21 @@ if 'selected_shirt' in st.session_state:
         ),
     )
 
-# Display shirt gallery and try-on buttons
+# Display shirt gallery in three columns
 st.markdown("# Shirt Gallery")
-for shirt in listShirts:
-    st.image(os.path.join(shirt_path, shirt), width=200)
-    if st.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s)):
-        st.session_state['selected_shirt'] = shirt
+
+# Calculate number of rows and columns for grid display
+num_cols = 3
+num_rows = (len(listShirts) + num_cols - 1) // num_cols
+
+for row in range(num_rows):
+    col1, col2, col3 = st.columns(3)
+    for col, shirt_index in zip((col1, col2, col3), range(row * num_cols, (row + 1) * num_cols)):
+        if shirt_index < len(listShirts):
+            shirt = listShirts[shirt_index]
+            col.image(os.path.join(shirt_path, shirt), caption=f"Shirt {shirt_index + 1}", width=200)
+            if col.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s)):
+                st.session_state['selected_shirt'] = shirt
 
 def try_on_shirt(shirt):
     st.experimental_set_query_params(shirt=shirt)
