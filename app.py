@@ -1,14 +1,15 @@
+import json
+import os
+import cv2
+import av
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, RTCConfiguration
-import av
-import cv2
-import os
 from cvzone.PoseModule import PoseDetector
 import cvzone
-import json
 
 # Ensure resource files are in the correct path
 button_r_path = "button.png"
+button_l_path = "button.png"
 shirt_path = "Shirts"
 
 if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
@@ -33,10 +34,6 @@ except Exception as e:
 # Initialize pose detector
 detector = PoseDetector()
 
-# Define regions for left and right buttons
-left_button_region = (0, 100, 200, 500)  # Define the region for the left button (x, y, width, height)
-right_button_region = (1080, 100, 200, 500)  # Define the region for the right button (x, y, width, height)
-
 # Define the VideoProcessor class
 class VideoProcessor:
     def __init__(self):
@@ -59,8 +56,8 @@ class VideoProcessor:
             if left_button_region[0] < lm16[0] < left_button_region[0] + left_button_region[2] and \
                     left_button_region[1] < lm16[1] < left_button_region[1] + left_button_region[3]:
                 self.counter_r += 1
-                cv2.ellipse(img, (139, 360), (66, 66), 0, 0, self.counter_r * 7, (0, 255, 0), 20)
-                if self.counter_r > 51:
+                cv2.ellipse(img, (139, 360), (66, 66), 0, 0, self.counter_r * speed, (0, 255, 0), 20)
+                if self.counter_r * speed > 360:
                     self.counter_r = 0
                     if self.img_num < len(self.listShirts) - 1:
                         self.img_num += 1
@@ -69,8 +66,8 @@ class VideoProcessor:
             elif right_button_region[0] < lm19[0] < right_button_region[0] + right_button_region[2] and \
                     right_button_region[1] < lm19[1] < right_button_region[1] + right_button_region[3]:
                 self.counter_l += 1
-                cv2.ellipse(img, (1138, 360), (66, 66), 0, 0, self.counter_l * 7, (0, 255, 0), 20)
-                if self.counter_l > 51:
+                cv2.ellipse(img, (1138, 360), (66, 66), 0, 0, self.counter_l * speed, (0, 255, 0), 20)
+                if self.counter_l * speed > 360:
                     self.counter_l = 0
                     if self.img_num > 0:
                         self.img_num -= 1
@@ -82,8 +79,8 @@ class VideoProcessor:
             lm12 = lmList[12][0:2]
 
             imgShirt = cv2.imread(os.path.join(shirt_path, self.listShirts[self.img_num]), cv2.IMREAD_UNCHANGED)
-            shirt_width = int((lm11[0] - lm12[0]) * 262 / 190)
-            imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * 581 / 440)))
+            shirt_width = int((lm11[0] - lm12[0]) * ratio)
+            imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * shirt_ratio)))
             scale = (lm11[0] - lm12[0]) / 190
             offset = int(44 * scale), int(48 * scale)
 
@@ -92,8 +89,20 @@ class VideoProcessor:
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
 
-            img = cvzone.overlayPNG(img, button_r, (1074, 293))
-            img = cvzone.overlayPNG(img, button_l, (72, 293))
+            # Adjust button overlay positions for 875x660 frame
+            try:
+                original_left_x = 72
+                original_right_x = 1074
+                original_y = 293
+
+                adjusted_left_x = int(original_left_x * (875 / 1280))
+                adjusted_right_x = int(original_right_x * (875 / 1280))
+                adjusted_y = int(original_y * (660 / 720))
+
+                img = cvzone.overlayPNG(img, button_r, (adjusted_right_x, adjusted_y))
+                img = cvzone.overlayPNG(img, button_l, (adjusted_left_x, adjusted_y))
+            except Exception as e:
+                st.write(f"Error overlaying buttons: {e}")
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
@@ -105,13 +114,12 @@ def get_shirts():
 st.set_option('deprecation.showfileUploaderEncoding', False)
 
 # Define a route to serve the shirts data
-params = st.query_params()
-if 'api' in params and params['api'][0] == "shirts":
+if 'api' in st.query_params:
     st.write(json.dumps(get_shirts()))
     st.stop()
 
 # Handle the try-on feature with query parameters
-query_params = st.query_params()
+query_params = st.query_params
 if 'shirt' in query_params:
     st.session_state['selected_shirt'] = query_params['shirt'][0]
 
@@ -123,7 +131,7 @@ for shirt in listShirts:
 
 def try_on_shirt(shirt):
     st.session_state['selected_shirt'] = shirt
-    st.query_params(shirt=shirt)
+    st.experimental_set_query_params(shirt=shirt)
     st.experimental_rerun()
 
 # Configure WebRTC
