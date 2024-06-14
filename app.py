@@ -105,13 +105,13 @@ def get_shirts():
 st.set_option('deprecation.showfileUploaderEncoding', False)
 
 # Define a route to serve the shirts data
-params = st.experimental_get_query_params()
+params = st.query_params()
 if 'api' in params and params['api'][0] == "shirts":
     st.write(json.dumps(get_shirts()))
     st.stop()
 
 # Handle the try-on feature with query parameters
-query_params = st.experimental_get_query_params()
+query_params = st.query_params()
 if 'shirt' in query_params:
     st.session_state['selected_shirt'] = query_params['shirt'][0]
 
@@ -123,7 +123,7 @@ for shirt in listShirts:
 
 def try_on_shirt(shirt):
     st.session_state['selected_shirt'] = shirt
-    st.experimental_set_query_params(shirt=shirt)
+    st.query_params(shirt=shirt)
     st.experimental_rerun()
 
 # Configure WebRTC
