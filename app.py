@@ -108,7 +108,7 @@ class VideoProcessor:
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
 # Set up Streamlit app
-st.title("Virtual Dress Try-On with Webcam")
+st.title("SHOPPY.in")
 
 # Configure WebRTC for webcam and virtual try-on
 if 'selected_shirt' in st.session_state:
