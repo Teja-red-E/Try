@@ -22,9 +22,6 @@ button_l = cv2.flip(button_r, 1)
 listShirts = os.listdir(shirt_path)
 ratio = 262 / 190  # width of shirt/width of points
 shirt_ratio = 581 / 440
-img_num = 0
-counter_r = 0
-counter_l = 0
 speed = 7
 
 # Define regions for left and right buttons
