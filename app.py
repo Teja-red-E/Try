@@ -110,21 +110,7 @@ class VideoProcessor:
 # Set up Streamlit app
 st.title("Virtual Dress Try-On with Webcam")
 
-# Display shirt gallery and try-on buttons
-st.markdown("# Shirt Gallery")
-for shirt in listShirts:
-    st.image(os.path.join(shirt_path, shirt), width=200)
-    if st.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s)):
-        st.session_state['selected_shirt'] = shirt
-
-def try_on_shirt(shirt):
-    st.session_state['selected_shirt'] = shirt
-    st.experimental_rerun()
-
-    # Open a new tab with the specified URL
-    st.write('<a href="https://www.example.com" target="_blank">Click here</a>', unsafe_allow_html=True)
-
-# Configure WebRTC
+# Configure WebRTC for webcam and virtual try-on
 if 'selected_shirt' in st.session_state:
     st.markdown("# Virtual Try-On")
     webrtc_streamer(
@@ -134,3 +120,14 @@ if 'selected_shirt' in st.session_state:
             {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
         ),
     )
+
+# Display shirt gallery and try-on buttons
+st.markdown("# Shirt Gallery")
+for shirt in listShirts:
+    st.image(os.path.join(shirt_path, shirt), width=200)
+    if st.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s)):
+        st.session_state['selected_shirt'] = shirt
+
+def try_on_shirt(shirt):
+    st.experimental_set_query_params(shirt=shirt)
+    st.experimental_rerun()
