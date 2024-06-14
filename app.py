@@ -102,3 +102,7 @@ webrtc_streamer(
         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
     ),
 )
+
+st.write("Debugging Information:")
+st.write(f"Resource Files: {os.listdir()}")
+st.write(f"Shirt Files: {listShirts}")
