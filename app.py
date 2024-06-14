@@ -28,11 +28,8 @@ counter_l = 0
 speed = 7
 
 # Define regions for left and right buttons
-new_width = 880
-new_height = 495
-
-left_button_region = (0, new_height // 2 - 50, 150, new_height // 2)  # Define the region for the left button (x, y, width, height)
-right_button_region = (new_width - 150, new_height // 2 - 50, 150, new_height // 2)  # Define the region for the right button (x, y, width, height)
+left_button_region = (0, 100, 200, 500)  # Define the region for the left button (x, y, width, height)
+right_button_region = (1080, 100, 200, 500)  # Define the region for the right button (x, y, width, height)
 
 # Initialize pose detector
 detector = PoseDetector()
@@ -92,10 +89,10 @@ class VideoProcessor:
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
 
-            img = cvzone.overlayPNG(img, button_r, (new_width - 150, new_height // 2 - 50))
-            img = cvzone.overlayPNG(img, button_l, (0, new_height // 2 - 50))
+            img = cvzone.overlayPNG(img, button_r, (1074, 293))
+            img = cvzone.overlayPNG(img, button_l, (72, 293))
 
-        return av.VideoFrame.from_ndarray(img, format='bgr24', frame_size=(new_width, new_height))
+        return av.VideoFrame.from_ndarray(img, format='bgr24')
 
 # Set up Streamlit app
 st.title("Virtual Dress Try-On with Webcam")
