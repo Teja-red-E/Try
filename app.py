@@ -5,6 +5,7 @@ import cv2
 import os
 from cvzone.PoseModule import PoseDetector
 import cvzone
+import json
 
 # Ensure resource files are in the correct path
 button_r_path = "button.png"
@@ -96,14 +97,42 @@ class VideoProcessor:
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
-# Set up Streamlit app
-st.title("Virtual Dress Try-On with Webcam")
+# Add an API endpoint to serve the list of shirts
+def get_shirts():
+    shirts = [{'name': shirt, 'imageUrl': f'Shirts/{shirt}'} for shirt in listShirts]
+    return shirts
+
+st.set_option('deprecation.showfileUploaderEncoding', False)
+
+# Define a route to serve the shirts data
+st.experimental_set_query_params(api="shirts")
+if 'api' in st.experimental_get_query_params():
+    st.write(json.dumps(get_shirts()))
+    st.stop()
+
+# Handle the try-on feature with query parameters
+query_params = st.experimental_get_query_params()
+if 'shirt' in query_params:
+    st.session_state['selected_shirt'] = query_params['shirt'][0]
+
+# Display the shirt gallery
+st.markdown("# Shirt Gallery")
+for shirt in listShirts:
+    st.image(os.path.join(shirt_path, shirt), width=200)
+    st.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s))
+
+def try_on_shirt(shirt):
+    st.session_state['selected_shirt'] = shirt
+    st.experimental_set_query_params(shirt=shirt)
+    st.experimental_rerun()
 
 # Configure WebRTC
-webrtc_streamer(
-    key="example",
-    video_processor_factory=VideoProcessor,
-    rtc_configuration=RTCConfiguration(
-        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-    ),
-)
+if 'selected_shirt' in st.session_state:
+    st.markdown("# Virtual Try-On")
+    webrtc_streamer(
+        key="example",
+        video_processor_factory=VideoProcessor,
+        rtc_configuration=RTCConfiguration(
+            {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+        ),
+    )
