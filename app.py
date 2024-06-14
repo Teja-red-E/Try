@@ -51,6 +51,9 @@ class VideoProcessor:
         self.last_frame_time = current_time
         frm = frame.to_ndarray(format="bgr24")
 
+        # Log frame processing start
+        print("Processing frame...")
+
         img = detector.findPose(frm, draw=False)
         lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False, draw=False)
 
@@ -76,42 +79,4 @@ class VideoProcessor:
                 if self.counter_l * speed > 360:
                     self.counter_l = 0
                     if self.img_num > 0:
-                        self.img_num -= 1
-            else:
-                self.counter_r = 0
-                self.counter_l = 0
-
-            lm11 = lmList[11][0:2]
-            lm12 = lmList[12][0:2]
-
-            imgShirt = cv2.imread(os.path.join(shirt_path, self.listShirts[self.img_num]), cv2.IMREAD_UNCHANGED)
-            shirt_width = int((lm11[0] - lm12[0]) * ratio)
-            imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * shirt_ratio)))
-            scale = (lm11[0] - lm12[0]) / 190
-            offset = int(44 * scale), int(48 * scale)
-
-            try:
-                img = cvzone.overlayPNG(img, imgShirt, (lm12[0] - offset[0], lm12[1] - offset[1]))
-            except Exception as e:
-                st.write(f"Error overlaying image: {e}")
-
-            img = cvzone.overlayPNG(img, button_r, (1074, 293))
-            img = cvzone.overlayPNG(img, button_l, (72, 293))
-
-        return av.VideoFrame.from_ndarray(img, format='bgr24')
-
-# Set up Streamlit app
-st.title("Virtual Dress Try-On with Webcam")
-
-# Configure WebRTC
-webrtc_streamer(
-    key="key",
-    video_processor_factory=VideoProcessor,
-    rtc_configuration=RTCConfiguration(
-        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
-    ),
-)
-
-st.write("Debugging Information:")
-st.write(f"Resource Files: {os.listdir()}")
-st.write(f"Shirt Files: {listShirts}")
+       
