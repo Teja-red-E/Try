@@ -43,7 +43,7 @@ class VideoProcessor:
 
     def recv(self, frame):
         current_time = time.time()
-        frame_interval = 1 / 15  # Target 15 FPS
+        frame_interval = 1 / 10  # Target 10 FPS to reduce load
 
         if current_time - self.last_frame_time < frame_interval:
             return frame  # Skip processing to maintain target frame rate
