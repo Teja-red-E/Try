@@ -3,6 +3,7 @@ from streamlit_webrtc import webrtc_streamer, RTCConfiguration
 import av
 import cv2
 import os
+import time
 from cvzone.PoseModule import PoseDetector
 import cvzone
 
@@ -38,8 +39,16 @@ class VideoProcessor:
         self.counter_l = 0
         self.img_num = 0
         self.listShirts = listShirts
+        self.last_frame_time = time.time()
 
     def recv(self, frame):
+        current_time = time.time()
+        frame_interval = 1 / 15  # Target 15 FPS
+
+        if current_time - self.last_frame_time < frame_interval:
+            return frame  # Skip processing to maintain target frame rate
+
+        self.last_frame_time = current_time
         frm = frame.to_ndarray(format="bgr24")
 
         img = detector.findPose(frm, draw=False)
