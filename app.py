@@ -108,7 +108,7 @@ class VideoProcessor:
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
 # Set up Streamlit app
-st.title("SHOPPY.in")
+st.title("Virtual Dress Try-On with Webcam")
 
 # Configure WebRTC for webcam and virtual try-on
 if 'selected_shirt' in st.session_state:
@@ -134,7 +134,7 @@ for row in range(num_rows):
         if shirt_index < len(listShirts):
             shirt = listShirts[shirt_index]
             col.image(os.path.join(shirt_path, shirt), caption=f"Shirt {shirt_index + 1}", width=200)
-            if col.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s)):
+            if col.button("Try On", key=f"try_on_{shirt}", on_click=lambda s=shirt: try_on_shirt(s)):
                 st.session_state['selected_shirt'] = shirt
 
 def try_on_shirt(shirt):
