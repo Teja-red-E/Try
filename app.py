@@ -7,9 +7,9 @@ from cvzone.PoseModule import PoseDetector
 import cvzone
 
 # Ensure resource files are in the correct path
-button_r_path = "/mnt/data/button.png"
-button_l_path = "/mnt/data/button.png"
-shirt_path = "/mnt/data/Shirts"
+button_r_path = "button.png"
+button_l_path = "button.png"
+shirt_path = "Shirts"
 
 if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
     st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
