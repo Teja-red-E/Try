@@ -5,12 +5,17 @@ import cv2
 import os
 from cvzone.PoseModule import PoseDetector
 import cvzone
+import logging
 
-# Ensure resource files are in the correct path
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Paths to the resources
 button_r_path = "button.png"
 button_l_path = "button.png"
 shirt_path = "Shirts"
 
+# Ensure resource files are in the correct path
 if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
     st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
     st.stop()
@@ -19,8 +24,10 @@ if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
 try:
     button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
     button_l = cv2.flip(button_r, 1)
+    logging.debug("Loaded button images successfully.")
 except Exception as e:
     st.error(f"Error loading button images: {e}")
+    logging.error(f"Error loading button images: {e}")
     st.stop()
 
 # Define shirt information (image filenames and prices)
@@ -35,6 +42,7 @@ shirt_info = [
 
 # Initialize pose detector
 detector = PoseDetector()
+logging.debug("PoseDetector initialized.")
 
 # Define the VideoProcessor class
 class VideoProcessor:
@@ -45,12 +53,14 @@ class VideoProcessor:
         self.shirt_info = shirt_info
 
     def recv(self, frame):
+        logging.debug("Frame received.")
         frm = frame.to_ndarray(format="bgr24")
 
         img = detector.findPose(frm, draw=False)
         lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False, draw=False)
 
         if lmList:
+            logging.debug(f"Landmarks detected: {lmList}")
             lm16 = lmList[16]  # Index finger landmark
             lm19 = lmList[19]  # Thumb landmark
 
@@ -93,8 +103,10 @@ class VideoProcessor:
 
             try:
                 img = cvzone.overlayPNG(img, imgShirt, (lm12[0] - offset[0], lm12[1] - offset[1]))
+                logging.debug("Shirt overlaid on image.")
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
+                logging.error(f"Error overlaying image: {e}")
 
             # Adjust button overlay positions for 875x660 frame
             try:
@@ -104,8 +116,10 @@ class VideoProcessor:
                 
                 img = cvzone.overlayPNG(img, button_r, (adjusted_right_x, adjusted_y))
                 img = cvzone.overlayPNG(img, button_l, (adjusted_left_x, adjusted_y))
+                logging.debug("Buttons overlaid on image.")
             except Exception as e:
                 st.write(f"Error overlaying buttons: {e}")
+                logging.error(f"Error overlaying buttons: {e}")
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
@@ -122,6 +136,7 @@ if 'selected_shirt' in st.session_state:
             {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
         ),
     )
+    logging.debug("WebRTC streamer initialized.")
 
 # Display shirt gallery in three columns
 st.markdown("# Shirt Gallery")
