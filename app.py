@@ -1,5 +1,3 @@
-#final froontend and backend #impppimpimpimpimpimpimp
-
 import streamlit as st
 from streamlit_webrtc import webrtc_streamer, RTCConfiguration
 import av
@@ -7,6 +5,7 @@ import cv2
 import os
 from cvzone.PoseModule import PoseDetector
 import cvzone
+import json
 
 # Ensure resource files are in the correct path
 button_r_path = "button.png"
@@ -25,15 +24,12 @@ except Exception as e:
     st.error(f"Error loading button images: {e}")
     st.stop()
 
-# Define shirt information (image filenames and prices)
-shirt_info = [
-    {"image": "1.png", "price": "₹500"},
-    {"image": "2.png", "price": "₹750"},
-    {"image": "3.png", "price": "₹600"},
-    {"image": "4.png", "price": "₹500"},
-    {"image": "5.png", "price": "₹750"},
-    {"image": "6.png", "price": "₹600"},
-]
+# Load shirt images
+try:
+    listShirts = os.listdir(shirt_path)
+except Exception as e:
+    st.error(f"Error loading shirt images from directory: {e}")
+    st.stop()
 
 # Initialize pose detector
 detector = PoseDetector()
@@ -44,7 +40,7 @@ class VideoProcessor:
         self.counter_r = 0
         self.counter_l = 0
         self.img_num = 0
-        self.shirt_info = shirt_info
+        self.listShirts = listShirts
 
     def recv(self, frame):
         frm = frame.to_ndarray(format="bgr24")
@@ -66,7 +62,7 @@ class VideoProcessor:
                 cv2.ellipse(img, (139, 360), (66, 66), 0, 0, self.counter_r * 7, (0, 255, 0), 20)
                 if self.counter_r * 7 > 360:
                     self.counter_r = 0
-                    if self.img_num < len(self.shirt_info) - 1:
+                    if self.img_num < len(self.listShirts) - 1:
                         self.img_num += 1
 
             # Check if the thumb is within the right button region
@@ -85,7 +81,7 @@ class VideoProcessor:
             lm11 = lmList[11][0:2]
             lm12 = lmList[12][0:2]
 
-            imgShirt = cv2.imread(os.path.join(shirt_path, self.shirt_info[self.img_num]["image"]), cv2.IMREAD_UNCHANGED)
+            imgShirt = cv2.imread(os.path.join(shirt_path, self.listShirts[self.img_num]), cv2.IMREAD_UNCHANGED)
             ratio = 262 / 190  # Adjust based on your shirt dimensions
             shirt_ratio = 581 / 440  # Adjust based on your shirt dimensions
             shirt_width = int((lm11[0] - lm12[0]) * ratio)
@@ -130,19 +126,17 @@ st.markdown("# Shirt Gallery")
 
 # Calculate number of rows and columns for grid display
 num_cols = 3
-num_rows = (len(shirt_info) + num_cols - 1) // num_cols
+num_rows = (len(listShirts) + num_cols - 1) // num_cols
 
-# Distribute shirts evenly across columns
 for row in range(num_rows):
-    cols = st.columns(num_cols)
-    for col, shirt_index in zip(cols, range(row * num_cols, (row + 1) * num_cols)):
-        if shirt_index < len(shirt_info):
-            shirt = shirt_info[shirt_index]
-            col.image(os.path.join(shirt_path, shirt["image"]), caption=f"{shirt['price']}", width=200)
-            if col.button("Try On", key=f"try_on_{shirt_index}"):
-                st.session_state['selected_shirt'] = shirt_index
-                st.experimental_rerun()
+    col1, col2, col3 = st.columns(3)
+    for col, shirt_index in zip((col1, col2, col3), range(row * num_cols, (row + 1) * num_cols)):
+        if shirt_index < len(listShirts):
+            shirt = listShirts[shirt_index]
+            col.image(os.path.join(shirt_path, shirt), caption=f"Shirt {shirt_index + 1}", width=200)
+            if col.button("Try On", key=shirt, on_click=lambda s=shirt: try_on_shirt(s)):
+                st.session_state['selected_shirt'] = shirt
 
-def try_on_shirt(shirt_index):
-    st.experimental_set_query_params(shirt=shirt_index)
+def try_on_shirt(shirt):
+    st.experimental_set_query_params(shirt=shirt)
     st.experimental_rerun()
