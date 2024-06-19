@@ -53,7 +53,7 @@ class VideoProcessor:
 st.title("Virtual Dress Try-On with Webcam")
 
 # Configure WebRTC for webcam and virtual try-on
-webrtc_streamer(
+webrtc_ctx = webrtc_streamer(
     key="example",
     video_processor_factory=VideoProcessor,
     rtc_configuration=RTCConfiguration(
@@ -83,3 +83,7 @@ for row in range(num_rows):
 def try_on_shirt(shirt_index):
     st.set_query_params(shirt=shirt_index)
     st.rerun()
+
+# Check if a shirt has been selected and set the video processor accordingly
+if 'selected_shirt' in st.session_state and webrtc_ctx.state.playing:
+    webrtc_ctx.video_processor.img_num = st.session_state['selected_shirt']
