@@ -4,30 +4,17 @@ import av
 import cv2
 import os
 from cvzone.PoseModule import PoseDetector
-import cvzone
 import logging
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Paths to the resources
-button_r_path = "button.png"
-button_l_path = "button.png"
 shirt_path = "Shirts"
 
 # Ensure resource files are in the correct path
-if not os.path.exists(button_r_path) or not os.path.exists(shirt_path):
-    st.error("Resource files not found. Make sure button.png and Shirts directory are uploaded.")
-    st.stop()
-
-# Load button images
-try:
-    button_r = cv2.imread(button_r_path, cv2.IMREAD_UNCHANGED)
-    button_l = cv2.flip(button_r, 1)
-    logging.debug("Loaded button images successfully.")
-except Exception as e:
-    st.error(f"Error loading button images: {e}")
-    logging.error(f"Error loading button images: {e}")
+if not os.path.exists(shirt_path):
+    st.error("Resource files not found. Make sure Shirts directory is uploaded.")
     st.stop()
 
 # Define shirt information (image filenames and prices)
@@ -71,7 +58,6 @@ class VideoProcessor:
             if left_button_region[0] < lm16[0] < left_button_region[0] + left_button_region[2] and \
                     left_button_region[1] < lm16[1] < left_button_region[1] + left_button_region[3]:
                 self.counter_r += 1
-                cv2.ellipse(img, (138, 300), (66, 66), 0, 0, self.counter_r * 7, (0, 255, 0), 20)
                 if self.counter_r * 7 > 360:
                     self.counter_r = 0
                     if self.img_num < len(self.shirt_info) - 1:
@@ -81,7 +67,6 @@ class VideoProcessor:
             elif right_button_region[0] < lm19[0] < right_button_region[0] + right_button_region[2] and \
                     right_button_region[1] < lm19[1] < right_button_region[1] + right_button_region[3]:
                 self.counter_l += 1
-                cv2.ellipse(img, (880 - 138, 300), (66, 66), 0, 0, self.counter_l * 7, (0, 255, 0), 20)
                 if self.counter_l * 7 > 360:
                     self.counter_l = 0
                     if self.img_num > 0:
@@ -107,19 +92,6 @@ class VideoProcessor:
             except Exception as e:
                 st.write(f"Error overlaying image: {e}")
                 logging.error(f"Error overlaying image: {e}")
-
-            # Adjust button overlay positions for 880x660 frame
-            try:
-                adjusted_left_x = 52  # Adjusted for 880 width
-                adjusted_right_x = 880 - 52 - button_r.shape[1]  # Adjusted for 880 width
-                adjusted_y = 280  # Adjusted for 660 height
-                
-                img = cvzone.overlayPNG(img, button_r, (adjusted_right_x, adjusted_y))
-                img = cvzone.overlayPNG(img, button_l, (adjusted_left_x, adjusted_y))
-                logging.debug("Buttons overlaid on image.")
-            except Exception as e:
-                st.write(f"Error overlaying buttons: {e}")
-                logging.error(f"Error overlaying buttons: {e}")
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
