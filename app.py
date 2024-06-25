@@ -4,6 +4,7 @@ import av
 import cv2
 import os
 from cvzone.PoseModule import PoseDetector
+import cvzone
 import logging
 
 # Set up logging
@@ -78,20 +79,26 @@ class VideoProcessor:
             lm11 = lmList[11][0:2]
             lm12 = lmList[12][0:2]
 
-            imgShirt = cv2.imread(os.path.join(shirt_path, self.shirt_info[self.img_num]["image"]), cv2.IMREAD_UNCHANGED)
-            ratio = 262 / 190  # Adjust based on your shirt dimensions
-            shirt_ratio = 581 / 440  # Adjust based on your shirt dimensions
-            shirt_width = int((lm11[0] - lm12[0]) * ratio)
-            imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * shirt_ratio)))
-            scale = (lm11[0] - lm12[0]) / 190
-            offset = int(44 * scale), int(48 * scale)
+            imgShirt_path = os.path.join(shirt_path, self.shirt_info[self.img_num]["image"])
+            logging.debug(f"Loading shirt image from: {imgShirt_path}")
+            imgShirt = cv2.imread(imgShirt_path, cv2.IMREAD_UNCHANGED)
 
-            try:
-                img = cvzone.overlayPNG(img, imgShirt, (lm12[0] - offset[0], lm12[1] - offset[1]))
-                logging.debug("Shirt overlaid on image.")
-            except Exception as e:
-                st.write(f"Error overlaying image: {e}")
-                logging.error(f"Error overlaying image: {e}")
+            if imgShirt is not None:
+                ratio = 262 / 190  # Adjust based on your shirt dimensions
+                shirt_ratio = 581 / 440  # Adjust based on your shirt dimensions
+                shirt_width = int((lm11[0] - lm12[0]) * ratio)
+                imgShirt = cv2.resize(imgShirt, (shirt_width, int(shirt_width * shirt_ratio)))
+                scale = (lm11[0] - lm12[0]) / 190
+                offset = int(44 * scale), int(48 * scale)
+
+                try:
+                    img = cvzone.overlayPNG(img, imgShirt, (lm12[0] - offset[0], lm12[1] - offset[1]))
+                    logging.debug("Shirt overlaid on image.")
+                except Exception as e:
+                    st.write(f"Error overlaying image: {e}")
+                    logging.error(f"Error overlaying image: {e}")
+            else:
+                logging.error(f"Error loading shirt image from: {imgShirt_path}")
 
         return av.VideoFrame.from_ndarray(img, format='bgr24')
 
