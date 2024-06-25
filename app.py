@@ -54,7 +54,7 @@ class VideoProcessor:
 
             # Check if the index finger is within the left button region
             left_button_region = (0, 100, 176, 500)  # Adjusted for 880 width
-            right_button_region = (880 - 176, 100, 176, 500)  # Adjusted for 880 width
+            right_button_region = (550, 100, 176, 500)  # Adjusted for 880 width
             
             if left_button_region[0] < lm16[0] < left_button_region[0] + left_button_region[2] and \
                     left_button_region[1] < lm16[1] < left_button_region[1] + left_button_region[3]:
